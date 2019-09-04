@@ -100,6 +100,7 @@ describe('API tests', () => {
     })
 
     describe("GET /rides", () =>{
+        console.log("hello")
         it("should fetch rides from the database", (done) =>{
             request(app)
                 .get("/rides")
