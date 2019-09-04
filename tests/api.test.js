@@ -29,7 +29,6 @@ describe('API tests', () => {
 
 
     describe("GET /rides (Error Case)", () =>{
-        console.log("tTESTSE")
         it("should return an error message when no rides are found", (done) =>{
             request(app)
                 .get("/rides")
@@ -101,11 +100,10 @@ describe('API tests', () => {
     })
 
     describe("GET /rides", () =>{
-        console.log("hello")
         it("should fetch rides from the database", (done) =>{
             request(app)
                 .get("/rides")
-                .expect(200, done)
+                .expect(2001, done)
         })
     })
     describe("GET /rides/:id", () =>{
