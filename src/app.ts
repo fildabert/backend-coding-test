@@ -132,7 +132,7 @@ module.exports = (db) => {
         const rows = await db.getAsync(`SELECT * FROM Rides WHERE rideID='${req.params.id}'`)
         try {
             if (rows.length === 0) {
-                return res.status(200).send({
+                return res.status(400).send({
                     error_code: 'RIDES_NOT_FOUND_ERROR',
                     message: 'Could not find any rides'
                 });

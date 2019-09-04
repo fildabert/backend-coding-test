@@ -180,7 +180,7 @@ module.exports = function (db) {
                     rows = _a.sent();
                     try {
                         if (rows.length === 0) {
-                            return [2 /*return*/, res.status(200).send({
+                            return [2 /*return*/, res.status(400).send({
                                     error_code: 'RIDES_NOT_FOUND_ERROR',
                                     message: 'Could not find any rides'
                                 })];
