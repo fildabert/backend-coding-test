@@ -9,7 +9,34 @@ const jsonParser = bodyParser.json();
 module.exports = (db) => {
     app.get('/health', (req, res) => res.send('Healthy'));
 
-    app.post('/rides', jsonParser, (req, res) => {
+    db.getAsync = function (query) {
+        return new Promise((resolve, reject) => {
+            db.all(query, function (err, rows) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            })
+        })
+    }
+    db.postAsync = function (query, value) {
+        return new Promise((resolve, reject) => {
+            db.run(query, value, function (err) {
+                if (err) {
+                    reject(err)
+                } else {
+                    db.all('SELECT * FROM Rides WHERE rideID = ?', this.lastID, function (err, rows) {
+                        if (err) {
+                            reject(err);
+                        }
+                        resolve(rows);
+                    });
+                }
+            })
+        })
+    }
+    app.post('/rides', jsonParser, async (req, res) => {
         const startLatitude: number = Number(req.body.start_lat);
         const startLongitude: number = Number(req.body.start_long);
         const endLatitude: number = Number(req.body.end_lat);
@@ -17,7 +44,7 @@ module.exports = (db) => {
         const riderName: string = req.body.rider_name;
         const driverName: string = req.body.driver_name;
         const driverVehicle: string = req.body.driver_vehicle;
-        
+
         if (startLatitude < -90 || startLatitude > 90 || startLongitude < -180 || startLongitude > 180) {
             return res.send({
                 error_code: 'VALIDATION_ERROR',
@@ -53,70 +80,55 @@ module.exports = (db) => {
             });
         }
 
+        var query = 'INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)'
         var values = [req.body.start_lat, req.body.start_long, req.body.end_lat, req.body.end_long, req.body.rider_name, req.body.driver_name, req.body.driver_vehicle];
-        
-        const result = db.run('INSERT INTO Rides(startLat, startLong, endLat, endLong, riderName, driverName, driverVehicle) VALUES (?, ?, ?, ?, ?, ?, ?)', values, function (err) {
-            if (err) {
-                return res.send({
-                    error_code: 'SERVER_ERROR',
-                    message: 'Unknown error'
-                });
-            }
 
-            db.all('SELECT * FROM Rides WHERE rideID = ?', this.lastID, function (err, rows) {
-                if (err) {
-                    return res.send({
-                        error_code: 'SERVER_ERROR',
-                        message: 'Unknown error'
-                    });
-                }
-
-                res.send(rows);
+        const rows = await db.postAsync(query, values)
+        try {
+            res.send(rows);
+        } catch (err) {
+            return res.send({
+                error_code: 'SERVER_ERROR',
+                message: 'Unknown error'
             });
-        });
-    });
+        }
+    }); 
 
-    app.get('/rides', (req, res) => {
-        db.all('SELECT * FROM Rides', function (err, rows) {
-            if (err) {
-                return res.send({
-                    error_code: 'SERVER_ERROR',
-                    message: 'Unknown error'
-                });
-            }
+    app.get('/rides', async (req, res) => {
 
+        const rows = await db.getAsync('SELECT * FROM Rides');
+        try {
             if (rows.length === 0) {
                 return res.send({
                     error_code: 'RIDES_NOT_FOUND_ERROR',
                     message: 'Could not find any rides'
                 });
             }
-            const totalPages: number = Math.ceil(rows.length / 10);
+            const totalPages: number = Math.ceil(rows.length / 5);
             var page: number = Number(req.query.page);
-            if(!page) {
+            if (!page) {
                 page = 1;
             }
-            if(page > totalPages) {
+            if (page > totalPages) {
                 page = totalPages
             }
-
             res.send({
                 page,
                 totalPages,
-                rides: rows.slice(page * 10 -10, page * 10)
+                rides: rows.slice(page * 5 - 5, page * 5)
             });
-        });
+        } catch (error) {
+            return res.send({
+                error_code: 'SERVER_ERROR',
+                message: 'Unknown error'
+            });
+        }
     });
 
-    app.get('/rides/:id', (req, res) => {
-        db.all(`SELECT * FROM Rides WHERE rideID='${req.params.id}'`, function (err, rows) {
-            if (err) {
-                return res.send({
-                    error_code: 'SERVER_ERROR',
-                    message: 'Unknown error'
-                });
-            }
 
+    app.get('/rides/:id', async (req, res) => {
+        const rows = await db.getAsync(`SELECT * FROM Rides WHERE rideID='${req.params.id}'`)
+        try {
             if (rows.length === 0) {
                 return res.send({
                     error_code: 'RIDES_NOT_FOUND_ERROR',
@@ -125,8 +137,15 @@ module.exports = (db) => {
             }
 
             res.send(rows);
-        });
+        } catch (err) {
+            return res.send({
+                error_code: 'SERVER_ERROR',
+                message: 'Unknown error'
+            });
+        }
+
     });
+
 
     return app;
 };
