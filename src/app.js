@@ -40,7 +40,19 @@ var app = express();
 var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json();
 module.exports = function (db) {
-    app.get('/health', function (req, res) { return res.send('Healthy'); });
+    app.get('/health', function (req, res) { return res.status(200).send('Healthy'); });
+    db.getAsync = function (query) {
+        return new Promise(function (resolve, reject) {
+            db.all(query, function (err, rows) {
+                if (err) {
+                    reject(err);
+                }
+                else {
+                    resolve(rows);
+                }
+            });
+        });
+    };
     db.postAsync = function (query, value) {
         return new Promise(function (resolve, reject) {
             db.run(query, value, function (err) {
@@ -52,7 +64,9 @@ module.exports = function (db) {
                         if (err) {
                             reject(err);
                         }
-                        resolve(rows);
+                        else {
+                            resolve(rows);
+                        }
                     });
                 }
             });
@@ -71,31 +85,32 @@ module.exports = function (db) {
                     driverName = req.body.driver_name;
                     driverVehicle = req.body.driver_vehicle;
                     if (startLatitude < -90 || startLatitude > 90 || startLongitude < -180 || startLongitude > 180) {
-                        return [2 /*return*/, res.send({
+                        return [2 /*return*/, res.status(400).send({
                                 error_code: 'VALIDATION_ERROR',
                                 message: 'Start latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
                             })];
                     }
                     if (endLatitude < -90 || endLatitude > 90 || endLongitude < -180 || endLongitude > 180) {
-                        return [2 /*return*/, res.send({
+                        return [2 /*return*/, res.status(400).send({
                                 error_code: 'VALIDATION_ERROR',
                                 message: 'End latitude and longitude must be between -90 - 90 and -180 to 180 degrees respectively'
                             })];
                     }
                     if (typeof riderName !== 'string' || riderName.length < 1) {
-                        return [2 /*return*/, res.send({
+                        console.log(riderName, "<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
+                        return [2 /*return*/, res.status(400).send({
                                 error_code: 'VALIDATION_ERROR',
                                 message: 'Rider name must be a non empty string'
                             })];
                     }
                     if (typeof driverName !== 'string' || driverName.length < 1) {
-                        return [2 /*return*/, res.send({
+                        return [2 /*return*/, res.status(400).send({
                                 error_code: 'VALIDATION_ERROR',
                                 message: 'Rider name must be a non empty string'
                             })];
                     }
                     if (typeof driverVehicle !== 'string' || driverVehicle.length < 1) {
-                        return [2 /*return*/, res.send({
+                        return [2 /*return*/, res.status(400).send({
                                 error_code: 'VALIDATION_ERROR',
                                 message: 'Rider name must be a non empty string'
                             })];
@@ -106,10 +121,10 @@ module.exports = function (db) {
                 case 1:
                     rows = _a.sent();
                     try {
-                        res.send(rows);
+                        res.status(201).send(rows);
                     }
                     catch (err) {
-                        return [2 /*return*/, res.send({
+                        return [2 /*return*/, res.status(500).send({
                                 error_code: 'SERVER_ERROR',
                                 message: 'Unknown error'
                             })];
@@ -118,18 +133,6 @@ module.exports = function (db) {
             }
         });
     }); });
-    db.getAsync = function (query, value) {
-        return new Promise(function (resolve, reject) {
-            db.all(query, function (err, rows) {
-                if (err) {
-                    reject(err);
-                }
-                else {
-                    resolve(rows);
-                }
-            });
-        });
-    };
     app.get('/rides', function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
         var rows, totalPages, page;
         return __generator(this, function (_a) {
@@ -139,7 +142,7 @@ module.exports = function (db) {
                     rows = _a.sent();
                     try {
                         if (rows.length === 0) {
-                            return [2 /*return*/, res.send({
+                            return [2 /*return*/, res.status(500).send({
                                     error_code: 'RIDES_NOT_FOUND_ERROR',
                                     message: 'Could not find any rides'
                                 })];
@@ -152,14 +155,14 @@ module.exports = function (db) {
                         if (page > totalPages) {
                             page = totalPages;
                         }
-                        res.send({
+                        res.status(200).send({
                             page: page,
                             totalPages: totalPages,
                             rides: rows.slice(page * 5 - 5, page * 5)
                         });
                     }
                     catch (error) {
-                        return [2 /*return*/, res.send({
+                        return [2 /*return*/, res.status(500).send({
                                 error_code: 'SERVER_ERROR',
                                 message: 'Unknown error'
                             })];
@@ -177,15 +180,15 @@ module.exports = function (db) {
                     rows = _a.sent();
                     try {
                         if (rows.length === 0) {
-                            return [2 /*return*/, res.send({
+                            return [2 /*return*/, res.status(200).send({
                                     error_code: 'RIDES_NOT_FOUND_ERROR',
                                     message: 'Could not find any rides'
                                 })];
                         }
-                        res.send(rows);
+                        res.status(200).send(rows);
                     }
                     catch (err) {
-                        return [2 /*return*/, res.send({
+                        return [2 /*return*/, res.status(500).send({
                                 error_code: 'SERVER_ERROR',
                                 message: 'Unknown error'
                             })];
