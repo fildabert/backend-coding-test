@@ -10,7 +10,12 @@
     "test": "mocha tests",
     "start": "node index.js",
     "coverage": "nyc npm run test",
-    "report": "npx nyc report --reporter=html"
+    "report": "npx nyc report --reporter=html",
+    "lint": "eslint ./",
+    "lint-fix": "npm run lint -- --fix",
+    "pre-run": "npm run lint",
+    "winston": "npm run pre-run && node winston.js",
+    "test:load": "artillery run load.yaml"
   },
   "pre-push": [
     "test"
@@ -23,12 +28,16 @@
   "dependencies": {
     "@types/node": "^12.7.4",
     "body-parser": "^1.19.0",
-    "eslint": "^6.3.0",
     "express": "^4.16.4",
-    "sqlite3": "^4.0.6"
+    "sqlite3": "^4.0.6",
+    "typescript": "^3.6.2",
+    "winston": "^3.2.1"
   },
   "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^2.1.0",
+    "@typescript-eslint/parser": "^2.1.0",
     "chai": "^4.2.0",
+    "eslint": "^6.3.0",
     "mocha": "^6.1.4",
     "nyc": "^14.1.1",
     "pre-push": "^0.1.1",

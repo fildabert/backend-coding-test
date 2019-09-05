@@ -41,9 +41,9 @@ var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json();
 module.exports = function (db) {
     app.get('/health', function (req, res) { return res.status(200).send('Healthy'); });
-    db.getAsync = function (query) {
+    db.getAsync = function (query, value) {
         return new Promise(function (resolve, reject) {
-            db.all(query, function (err, rows) {
+            db.all(query, value, function (err, rows) {
                 if (err) {
                     reject(err);
                 }
@@ -175,7 +175,7 @@ module.exports = function (db) {
         var rows;
         return __generator(this, function (_a) {
             switch (_a.label) {
-                case 0: return [4 /*yield*/, db.getAsync("SELECT * FROM Rides WHERE rideID='" + req.params.id + "'")];
+                case 0: return [4 /*yield*/, db.getAsync("SELECT * FROM Rides WHERE rideID=?", req.params.id)];
                 case 1:
                     rows = _a.sent();
                     try {

@@ -9,9 +9,9 @@ const jsonParser = bodyParser.json();
 module.exports = (db) => {
     app.get('/health', (req, res) => res.status(200).send('Healthy'));
 
-    db.getAsync = function (query: string) {
+    db.getAsync = function (query: string, value) {
         return new Promise((resolve, reject) => {
-            db.all(query, function (err, rows) {
+            db.all(query, value, function (err, rows) {
                 if (err) {
                     reject(err);
                 } else {
@@ -129,7 +129,7 @@ module.exports = (db) => {
 
 
     app.get('/rides/:id', async (req, res) => {
-        const rows = await db.getAsync(`SELECT * FROM Rides WHERE rideID='${req.params.id}'`)
+        const rows = await db.getAsync(`SELECT * FROM Rides WHERE rideID=?`, req.params.id)
         try {
             if (rows.length === 0) {
                 return res.status(400).send({

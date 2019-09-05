@@ -85,14 +85,16 @@ describe('API tests', () => {
                     .post("/rides")
                     .send(errorData)
                     .expect(400)
+                    /* eslint-disable */
                     .then(response =>{
                         // I'm trying to cover all of the validations in POST /rides, but for some reason it only covers 
                         // the validation for rider name (VALIDATION ERROR, message: Rider name must be a non empty string)
                         // even though errorData already has the property rider_name
-
+                       
                         // console.log(errorData);
                         // console.log(response.body)
                     })
+                    /* eslint-enable */
                 
             })
         }
@@ -103,7 +105,7 @@ describe('API tests', () => {
         it("should fetch rides from the database", (done) =>{
             request(app)
                 .get("/rides")
-                .expect(2001, done)
+                .expect(200, done)
         })
     })
     describe("GET /rides/:id", () =>{
